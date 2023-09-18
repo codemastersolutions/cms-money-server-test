@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        WWWGROUP: '${WWWGROUP}'
+    tty: true
+    restart: always
+    environment:
+      WWWUSER: '${WWWUSER}'
+    ports:
+      - '${APP_PORT:-3000}:3000'
+    volumes:
+      - .:/home/node/app
+    depends_on:
+      - db
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+      - 'host.docker.internal:172.17.0.1'
+    networks:
+      - cmsmoney
+
+  db:
+    image: postgres:15.4-alpine
+    environment:
+      POSTGRES_USER: '${DB_USERNAME}'
+      POSTGRES_PASSWORD: '${DB_PASSWORD}'
+      POSTGRES_DB: '${DB_DATABASE}'
+    ports:
+      - '${DB_PORT:-5432}:5432'
+    healthcheck:
+      test:
+        - CMD
+        - pg_isready
+        - '-q'
+        - '-d'
+        - '${DB_DATABASE}'
+        - '-U'
+        - '${DB_USERNAME}'
+      retries: 3
+      timeout: 5s
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+      - 'host.docker.internal:172.17.0.1'
+    networks:
+      - cmsmoney
+
+networks:
+  cmsmoney:
+    driver: bridge
+    name: cmsmoney
