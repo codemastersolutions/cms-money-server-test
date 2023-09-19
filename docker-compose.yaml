@@ -15,6 +15,7 @@ services:
       - '${APP_PORT:-3000}:3000'
     volumes:
       - .:/home/node/app
+      - ~/.ssh:/home/node/.ssh
     depends_on:
       - db
     extra_hosts:
